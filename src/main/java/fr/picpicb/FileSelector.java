@@ -1,20 +1,35 @@
 package fr.picpicb;
 
+import com.google.api.services.drive.Drive;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 public class FileSelector implements ActionListener {
     private GDriveUpload uploader;
     private JFileChooser fc;
-    private File file;
     private JButton button;
+    private JPanel panel;
+    private JLabel label;
+    private JList liste;
+    private Drive service;
+    GDriveFileList fileList;
 
-    public FileSelector(GDriveUpload uploader, JFileChooser fc, JButton button){
-        this.uploader = uploader;
-        this.fc = fc;
+    public FileSelector(Drive service, JButton button, JPanel panel, JLabel label, JList liste){
+        this.uploader = new GDriveUpload(service);
+        this.service = service;
+        this.fc = new JFileChooser();
         this.button = button;
+        this.panel = panel;
+        this.label = label;
+        this.liste = liste;
+        button.addActionListener(this);
+        fileList = new GDriveFileList();
+
     }
 
     @Override
@@ -23,8 +38,13 @@ public class FileSelector implements ActionListener {
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                //This is where a real application would open the file.
-                System.out.println("Opening: " + file.getName());
+                label.setText("Uploading...");
+                if(uploader.upload(file)){
+                    label.setText("File "+file.getName()+" uploaded !");
+                    liste.setModel(fileList.getFileList(service,"1QBwgRYYnkqEWtp80Si1LzDpPi5soM4iO"));
+                }else{
+                    label.setText("ERROR : File "+file.getName()+" not uploaded !");
+                }
             } else {
                 System.out.println("Open command cancelled by user.");
             }
